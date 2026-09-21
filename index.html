@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RCode · Тест направления Старт</title>
+  <style>
+    :root {
+      --blue: #1565c0;
+      --bg: #f4f7fb;
+      --card: #fff;
+      --ok: #1b7f3a;
+      --bad: #b42318;
+      --line: #d7e0ea;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: #1a2330;
+      line-height: 1.45;
+    }
+    header, main, footer { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+    header { padding-top: 28px; }
+    h1 { font-size: 1.35rem; margin: 0 0 8px; color: var(--blue); }
+    .meta { color: #5b6b7c; font-size: 0.95rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 14px 0;
+    }
+    .parent { font-weight: 600; margin-bottom: 10px; }
+    .who { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .who input, .who select, textarea {
+      width: 100%;
+      font: inherit;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    label.opt {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      margin: 6px 0;
+      cursor: pointer;
+    }
+    label.opt:hover { background: #eef4fb; }
+    label.opt.ok { background: #e5f6ea; }
+    label.opt.bad { background: #fdecea; }
+    button {
+      background: var(--blue);
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.05); }
+    #result { display: none; }
+    .score { font-size: 1.4rem; font-weight: 700; }
+    footer { color: #5b6b7c; font-size: 0.85rem; padding: 24px 16px 40px; }
+    @media (max-width: 600px) { .who { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Направление «Старт»</h1>
+    <p class="meta">IT Start · Arduino Kids · Arduino Kids Pro · внутренний тест для админов и преподавателей · 30 вопросов + ситуация</p>
+  </header>
+  <main>
+    <section class="card">
+      <div class="parent">Кто проходит</div>
+      <div class="who">
+        <input id="who-name" type="text" placeholder="Имя" autocomplete="name">
+        <select id="who-role">
+          <option value="">Роль</option>
+          <option>Администратор</option>
+          <option>Преподаватель</option>
+          <option>Ассистент</option>
+          <option>Методист</option>
+          <option>Другая</option>
+        </select>
+      </div>
+    </section>
+    <form id="quiz"></form>
+    <section class="card" id="case-block">
+      <div class="parent">Ситуация. Максим, 10 лет — напишите разбор сами</div>
+      <p>Новый, на промо медленно читал и не напечатал имя. Мама хочет Junior Embedded (сосед уже там) и скидку без админа, «с понедельника за доплату». Папа — пайка и зарплаты. Бабушка — Глобо и зачёт дня рождения в арене. Максим — Quant домой.</p>
+      <p>Закройте: какой курс и какие нет; навыки и воронка; пайка / деньги / Глобо / арена / Quant / скидка; кого звать; одна запретная фраза.</p>
+      <textarea id="case" rows="10" placeholder="8–12 предложений. Этот блок ведущий смотрит отдельно, автопроверки нет."></textarea>
+    </section>
+    <p><button type="button" id="check">Проверить тест</button></p>
+    <section id="result" class="card"></section>
+  </main>
+  <footer>
+    RCode · внутренний тест, не для родителей. Источник: продукт 2026 и мозг v1.2.4, §5.1.
+  </footer>
+  <script>
+    const KEY = {1:"C",2:"B",3:"B",4:"B",5:"B",6:"B",7:"C",8:"C",9:"B",10:"C",11:"B",12:"C",13:"C",14:"B",15:"B",16:"B",17:"B",18:"B",19:"B",20:"B",21:"B",22:"B",23:"B",24:"B",25:"B",26:"B",27:"B",28:"B",29:"B",30:"B"};
+    const Q = [
+      ["Сыну 7 лет, через два месяца будет 7,5. Запишете на IT Start после промо?",
+        ["Да, почти возраст — берём","Берём, но предупреждаем, что будет тяжело","Младше 7,5 на IT Start не берём","Сразу на Arduino Kids"]],
+      ["Дочке 10. Год ходила на IT Start. По таблице ей снова IT Start?",
+        ["Возраст в карте для всех","Возраст — для новых после промо; свои идут по лестнице","Всех на Junior Embedded","Любой курс «для новых»"]],
+      ["Мальчику 9, не учился у нас, был на промо. Куда писать?",
+        ["IT Start","Arduino Kids — для новых 9–10","Arduino Kids Pro","Junior Embedded"]],
+      ["Девочке 11, без опыта. Можно на Arduino Kids Pro?",
+        ["Нет, только после двух лет у нас","Да: после Kids или новые 11–12 (шапка 10–12), для новых подходит","Только тест по C++","Сразу Unity"]],
+      ["Ему 9, очень способный. Сразу Junior Embedded?",
+        ["Да, способным можно перепрыгивать","Нет. В 9 — Arduino Kids. Junior — 11–12 после AKPro или с базой после ОУ","На Kids Pro","На Embedded без преподавателей"]],
+      ["На IT Start весь год роботы как на ютубе?",
+        ["Да, плата и пайка с первого урока","Компграмотность, алгоритмы, ИИ-графика, Scratch Jr / TinkerCad / Kodu / PictoBlox / NEO, лампа в конце","Только Scratch без железа","Сразу C++"]],
+      ["На IT Start будет Maker Time?",
+        ["Да, бои на Quant 5 недель","Да, своя игра 6 недель","Нет, на IT Start Maker Time не проводится","Если группа сильная"]],
+      ["Что принесут домой с IT Start?",
+        ["Quant","Игру в Google Play","RGB-лампу «из Minecraft»","Ничего"]],
+      ["На Arduino Kids сразу пишут как взрослые?",
+        ["C++ с сентября","1-й семестр: PictoBlox + Uno, алгоритм на железе","Только симулятор","Python и нейросети"]],
+      ["Второй семестр Arduino Kids?",
+        ["Java","Только теория","Ardublock + Uno и NEO: шлагбаум, тир, таймер, лампа, парктроник, приложения","Линия на Quant на C++"]],
+      ["Чем заканчивается Arduino Kids?",
+        ["Как IT Start, без финала","Maker Time 5 недель: Quant и «бои роботов»","Публикация в стор","Линия на C++"]],
+      ["Когда настоящий язык, не блоки?",
+        ["IT Start, 1-я четверть","Arduino Kids с первого урока","Kids Pro, 2-й семестр: C++ в Arduino IDE","Только Senior Embedded"]],
+      ["Maker Time на Kids Pro — снова бои?",
+        ["Да, те же бои","Нет Maker Time","5 недель: Quant по чёрной линии на C++","6 недель: устройство для людей"]],
+      ["В чате LEO6, на уроке NEO. Два робота?",
+        ["Да","Нет: одно устройство, переход LEO6 → NEO","LEO6 это Quant","NEO только на Embedded"]],
+      ["Quant и NEO — одно и то же?",
+        ["Да, старое и новое имя","Нет. NEO на уроках, Quant отдельно на Maker Time","Quant только в арене","Quant = Arduino Uno"]],
+      ["Кроме возраста что нужно?",
+        ["Английский B1 и игровой ПК","Чтение, печать, ПК, мышь","C++ на все три курса","Только возраст"]],
+      ["Как занятие? Паяют? Один на 20?",
+        ["Один педагог, до 20, паяем","Два педагога, до 12, 50+10+50, ≥80% практика, пайки нет","Лекция 90 минут","Телефоны, один на зале"]],
+      ["После трёх курсов сразу Java?",
+        ["Да, всем Java Junior","После старта выбор: Embedded / Game Dev / Soft Dev / Web","Только роботы","Все на Unity VR"]],
+      ["Чтобы стал программистом, поступил и зарабатывал?",
+        ["Гарантируем профессию и доход","Не обещаем работу, вуз и не говорим про зарплаты","Называем вилку junior","Обещаем технопарк и поступление"]],
+      ["Вы в Глобо? Это VR-арена?",
+        ["Да, Глобо, школа = арена","Минск — Титан. Глобо закрыт. Арена — отдельный контур","Можно назвать второй минский адрес","Билет в арену = занятие"]],
+      ["Это на месяц, как кружок, или на весь год?",
+        ["Месяц — и решим","9 месяцев / год на трёх курсах Старта","Три недели как лето","До выпускного из школы"]],
+      ["Промо некогда. С понедельника в группу, доплатим.",
+        ["Да, если платят больше","Промо → при необходимости тест → зачисление. За доплату без промо не ставим","Тест по C++ вместо промо","Сразу любой курс"]],
+      ["На IT Start во второй четверти уже роботы и бои?",
+        ["Да, Quant и Maker Time","Поиск, безопасность, ИИ, презентации; схемы руками и в TinkerCad","Только Paint 3D","C++ и пайка"]],
+      ["На Kids Pro кроме плат нас будут звать?",
+        ["Нет, только код","Да: презентации датчиков родителям","Защита в вузе","Только Kahoot"]],
+      ["Сыну ровно 10, новый. В шапке Pro 10–12 — сразу Pro?",
+        ["Да, шапка важнее","Новому 10 — Arduino Kids. Pro для новых 11–12 или после Kids","IT Start","Junior Embedded"]],
+      ["Надо купить игровой ноутбук к сентябрю?",
+        ["Да, без видеокарты не берём","Нет, занятия в школе, дорогой ПК на Старт не нужен","Обязателен планшет","Нужна карта под нейросети"]],
+      ["Kids Pro закончил, 12 лет. Сразу Middle Embedded?",
+        ["Да, можно прыгать","Нет, следующий — Junior. Middle не для новых","Сразу Senior","Сразу Soft Dev VR — уже учим"]],
+      ["В школе есть информатика. Зачем платить?",
+        ["Одно и то же","Практика, железо, два педагога, до 12 — не дубль школы","Готовим к экзамену","Только игры"]],
+      ["Плохо читает и не печатает, любит конструктор. На Arduino Kids?",
+        ["Да, на железе читать не надо","Нет: чтение, печать, ПК, мышь. Конструктор не замена","В 9 лет на IT Start","Ассистент вместо чтения"]],
+      ["Скидку от себя и точную цену, как у соседей.",
+        ["Педагог даёт −20%","Скидок от себя нет, сумму филиала не выдумываем, цену говорит админ","Любая круглая сумма","Семестр бесплатно за друга"]]
+    ];
+    const letters = ["A","B","C","D"];
+    const form = document.getElementById("quiz");
+    Q.forEach((item, i) => {
+      const n = i + 1;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `<div class="parent">${n}. Родитель: «${item[0]}»</div>` +
+        item[1].map((t, j) =>
+          `<label class="opt"><input type="radio" name="q${n}" value="${letters[j]}"> ${letters[j]}. ${t}</label>`
+        ).join("");
+      form.appendChild(card);
+    });
+    document.getElementById("check").onclick = () => {
+      const who = (document.getElementById("who-name").value || "").trim() || "без имени";
+      const role = document.getElementById("who-role").value || "роль не указана";
+      let score = 0;
+      const miss = [];
+      Q.forEach((_, i) => {
+        const n = i + 1;
+        const picked = (form["q" + n].value) || "";
+        const right = KEY[n];
+        const labels = form.querySelectorAll(`input[name="q${n}"]`);
+        labels.forEach((inp) => {
+          inp.parentElement.classList.remove("ok", "bad");
+          if (inp.value === right) inp.parentElement.classList.add("ok");
+          if (inp.checked && inp.value !== right) inp.parentElement.classList.add("bad");
+        });
+        if (picked === right) score += 1;
+        else miss.push(n);
+      });
+      let verdict = "Разбор со старшим / методистом.";
+      if (score >= 27) verdict = "Тест закрыт. Кейс ведущий смотрит отдельно — без него к родителям рано.";
+      else if (score >= 21) verdict = "Ещё раз выжимка продукта, раздел «Старт».";
+      const caseLen = (document.getElementById("case").value || "").trim().length;
+      const caseNote = caseLen < 80
+        ? "Ситуация почти пустая — разбор не сдан."
+        : "Ситуацию написали. Пять пунктов сверяет ведущий, автопроверки нет.";
+      const box = document.getElementById("result");
+      box.style.display = "block";
+      box.innerHTML = `<div class="score">${score} / 30</div><p>${who} · ${role}</p><p>${verdict}</p><p>${caseNote}</p>` +
+        (miss.length ? `<p>Ошибки: ${miss.join(", ")}.</p>` : `<p>Все 30. Речь родителю всё равно прогнать вслух.</p>`);
+      box.scrollIntoView({ behavior: "smooth" });
+    };
+  </script>
+</body>
+</html>
